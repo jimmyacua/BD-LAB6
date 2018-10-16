@@ -15,9 +15,9 @@ create trigger ElimEstudiante
 on Estudiante instead of delete
 as
 	declare @ced char(9) 
-
 	delete from Asistente
 	select @ced = Cedula from deleted
+	@ced = Cedula
 	where Cedula = @ced
 	delete from Estudiante
 	where Cedula = @ced
