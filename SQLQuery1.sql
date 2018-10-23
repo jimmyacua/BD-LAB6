@@ -51,24 +51,21 @@ create trigger CierraGrupo
 on Grupo instead of delete
 as
 	declare @sigla char(7)
-	select @sigla = d.SiglaCurso from deleted d-- join Lleva l on d.SiglaCurso = l.SiglaCurso
+	select @sigla = d.SiglaCurso from deleted d --join Lleva l on d.SiglaCurso = l.SiglaCurso
 	declare @nG int
 	select @nG = d.NumGrupo from deleted d --join Lleva l on d.NumGrupo = l.NumGrupo
 	declare @sem int
 	select @sem = d.Semestre from deleted d --join Lleva l on d.Semestre = l.Semestre
 	declare @anno int
 	select @anno = d.Año from deleted d --join Lleva l on d.Año = l.Año
-	delete from Grupo
-	--delete from Lleva
-go
+	delete from Lleva
+	where SiglaCurso in(
+	select d.SiglaCurso
+	from deleted d)
+	and
 
-drop trigger CierraGrupo
-
-select * from Lleva
-select * from Grupo
-
-delete from Grupo 
-where SiglaCurso in  
+	delete from Grupo 
+	where SiglaCurso in
 		(Select l.SiglaCurso		
 		  from Lleva l
 		  where l.Nota is null)
@@ -87,3 +84,34 @@ where SiglaCurso in
 	Año in(select l.Año
 		from Lleva l
 		where l.Nota is null)
+go
+
+drop trigger CierraGrupo
+
+select * from Lleva
+select * from Grupo
+
+delete from Grupo 
+where SiglaCurso = 'ci1312'
+
+
+/*where SiglaCurso in  
+		(Select l.SiglaCurso		
+		  from Lleva l
+		  where l.Nota is null)
+	and
+	NumGrupo in
+		(select l.NumGrupo
+		from Lleva l
+		where l.Nota is null)
+	and
+	Semestre in
+		(select l.Semestre
+		from Lleva l
+		where l.Nota is null
+		)
+	and 
+	Año in(select l.Año
+		from Lleva l
+		where l.Nota is null)
+		*/
