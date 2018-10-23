@@ -52,7 +52,7 @@ on Grupo instead of delete
 as
 	declare @sigla char(7), @nG int, @sem int, @anno int
 	select @sigla = d.SiglaCurso, @nG = d.NumGrupo, @sem = d.Semestre, @anno = d.Año 
-	from deleted d join Lleva l on @sigla = l.SiglaCurso and @nG = l.NumGrupo and @sem = l.Semestre and @anno = l.Año
+	from deleted d join Lleva l on d.SiglaCurso = l.SiglaCurso and d.NumGrupo = l.NumGrupo and d.Semestre = l.Semestre and d.Año = l.Año
 	where l.Nota is null
 	
 	delete from Lleva 
@@ -118,7 +118,9 @@ select * from Grupo
 --4.ii) 
 
 
-
+insert into Grupo values(
+'ci1312', 1, 2, 2018, '234567890', 4, '111222333'
+)
 --se agregan estudiantes con nota null
 insert into Lleva values
 ('111222333','ci1312', 1,2,2018, null)
@@ -130,10 +132,12 @@ insert into Lleva values
 ('876543219','ci1312', 1,2,2018, null)
 
 insert into Lleva values
-('99888777','ci1312', 1,2,2018, null)
+('99888777','ci1312', 1,2,2018, 90)
 
 select * from Lleva
 select * from Grupo
+
+select * from Estudiante
 
 delete from Grupo 
 where SiglaCurso = 'ci1312'
