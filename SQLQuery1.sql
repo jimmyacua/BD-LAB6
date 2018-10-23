@@ -68,7 +68,22 @@ select * from Lleva
 select * from Grupo
 
 delete from Grupo 
-where(SiglaCurso, NumGrupo, Semestre, Año)  
-		(Select l.SiglaCurso, l.NumGrupo, l.Semestre, l.Año
+where SiglaCurso in  
+		(Select l.SiglaCurso		
 		  from Lleva l
-		  where l.Nota is null);
+		  where l.Nota is null)
+	and
+	NumGrupo in
+		(select l.NumGrupo
+		from Lleva l
+		where l.Nota is null)
+	and
+	Semestre in
+		(select l.Semestre
+		from Lleva l
+		where l.Nota is null
+		)
+	and 
+	Año in(select l.Año
+		from Lleva l
+		where l.Nota is null)
