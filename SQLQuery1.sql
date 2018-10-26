@@ -53,53 +53,14 @@ as
 	declare @sigla char(7), @nG int, @sem int, @anno int
 	select @sigla = d.SiglaCurso, @nG = d.NumGrupo, @sem = d.Semestre, @anno = d.Año 
 	from deleted d join Lleva l on d.SiglaCurso = l.SiglaCurso and d.NumGrupo = l.NumGrupo and d.Semestre = l.Semestre and d.Año = l.Año
-	where l.Nota is null
-	
+	where 
+		 
 	delete from Lleva 
 	where SiglaCurso= @sigla and NumGrupo = @nG and Semestre = @sem and Año = @anno
 	
 	delete from Grupo
 	where SiglaCurso= @sigla and NumGrupo = @nG and Semestre = @sem and Año = @anno
 	
-	
-	/*
-	delete from Lleva
-	where SiglaCurso in(
-	select d.SiglaCurso
-	from deleted d)
-	and
-	NumGrupo in(
-	select d.NumGrupo
-	from deleted d )
-	and 
-	Semestre in(
-	select d.Semestre
-	from deleted d)
-	and 
-	Año in(
-	select d.Año
-	from deleted d )
-
-	delete from Grupo 
-	where SiglaCurso in
-		(Select l.SiglaCurso		
-		  from Lleva l
-		  where l.Nota is null)
-	and
-	NumGrupo in
-		(select l.NumGrupo
-		from Lleva l
-		where l.Nota is null)
-	and
-	Semestre in
-		(select l.Semestre
-		from Lleva l
-		where l.Nota is null
-		)
-	and 
-	Año in(select l.Año
-		from Lleva l
-		where l.Nota is null)*/
 go
 
 drop trigger CierraGrupo
@@ -120,7 +81,7 @@ select * from Grupo
 
 insert into Grupo values(
 'ci1312', 1, 2, 2018, '234567890', 4, '111222333'
-)
+);
 --se agregan estudiantes con nota null
 insert into Lleva values
 ('111222333','ci1312', 1,2,2018, null)
@@ -137,11 +98,67 @@ insert into Lleva values
 select * from Lleva
 select * from Grupo
 
-select * from Estudiante
+EXEC ActualizarNotaEstudiante @ced = '99888777', @sigla = 'ci1312', @numG= 1, 
+@sem = 2, @año = 2018, @nuevaNota = null 
 
 delete from Grupo 
 where SiglaCurso = 'ci1312'
 
+select c.Codigo from Carrera c
+
 --Se borran todas las tuplas que tienen nota null
 
 --5:
+
+
+
+--6:
+go
+create trigger RestrInsertar
+on Empadronado_En after insert
+as
+	declare @cedE char(9), @codC varchar(10), @fI date, @fG date, @numC int
+
+	select @cedE = i.CedEstudiante, @codC = i.CodCarrera, @fI = i.FechaIngreso, 
+			@fG = i.FechaGraducación
+	from inserted i
+	group by CedEstudiante, CodCarrera, FechaIngreso, FechaGraducación
+	select @numC = count(*)
+	from Empadronado_En
+	where CedEstudiante = @cedE
+	if @numC > 3
+		exec DesempadronarEstudiante @ced = @cedE, @cod = @codC
+
+go
+
+--exec DesempadronarEstudiante @ced = '111222333', @cod = '420001'
+
+insert into Empadronado_En
+values('111222333', '420002', null, null)
+
+select * from Empadronado_En where CedEstudiante = '111222333'
+
+go
+create trigger RestrEliminar
+on Empadronado_En instead of delete 
+as
+	declare @cedE char(9), @codC varchar(10), @fI date, @fG date, @numC int
+	select @cedE = d.CedEstudiante, @codC = d.CodCarrera, @fI = d.FechaIngreso, 
+			@fG = d.FechaGraducación 
+	from deleted d
+	group by CedEstudiante, CodCarrera, FechaIngreso, FechaGraducación
+	select @numC = count(*)
+	from Empadronado_En
+	where CedEstudiante = @cedE
+	if @numC > 1
+		delete from Empadronado_En
+		where CedEstudiante = @cedE and CodCarrera = @codC
+		--exec DesempadronarEstudiante @ced = @cedE, @cod = @codC
+go
+
+drop trigger RestrEliminar
+
+delete from Empadronado_En
+where CedEstudiante = '111222333' and CodCarrera = '420705'
+
+select * from Empadronado_En where CedEstudiante = '111222333'
