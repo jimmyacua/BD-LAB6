@@ -151,18 +151,18 @@ select * from Lleva where SiglaCurso = 'ci1312'
 --No se elimina el grupo porque se encuentran notas distintas a null
 
 --5:
-drop trigger CierraGrupo
+drop trigger CierraVariosGrupos
 go
 create trigger CierraVariosGrupos
 on Grupo instead of delete
 as
-	declare @sigla char(7)
-	declare c cursor for 
+	declare @sigla char(7), @notNulls int
+	declare c cursor scroll for
 	select SiglaCurso from deleted
 	open c
 	Fetch next from c into @sigla
-	while @@FETCH_STATUS = 0 begin
-		declare @notNulls int
+	while @@fetch_status = 0
+	begin
 		select @notNulls = count(*)
 		from deleted d join Lleva l on d.SiglaCurso = l.SiglaCurso
 		where l.Nota is not null
@@ -179,19 +179,21 @@ as
 			delete from Grupo
 			where SiglaCurso= @sigla and NumGrupo = @nG and Semestre = @sem and Año = @anno
 		end
+		Fetch next from c into @sigla
 	end
 	close c
 	deallocate c
 go
 
 
--------------------
-select * from Lleva
-select * from Grupo
+exec ActualizarNotasGrupo @sigla = 'ci1312', @numG = 1, @sem = 2, @año = 2018, @nuevaNota= null
+exec ActualizarNotasGrupo @sigla = 'ci1310', @numG = 1, @sem = 2, @año = 2018, @nuevaNota= null
+
 
 delete from Grupo
-
-
+select * from Lleva
+select * from Grupo
+-----------------------------------------------------------------------------------------------
 --6:
 go
 create trigger RestrInsertar
